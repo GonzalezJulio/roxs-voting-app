@@ -1,0 +1,14 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, production]
+    needs: approval
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Production
+        run: ./scripts/deploy.sh production

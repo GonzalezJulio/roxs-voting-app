@@ -1,11 +1,10 @@
 import unittest
+from vote.app import app
 
 
 class TestApp(unittest.TestCase):
 
-    def test_fake_pipeline(self):
-        response = 'Test Fake Pipeline!'
-        self.assertEqual('Test Fake Pipeline!', response)
-                
-if __name__ == '__main__':
-    unittest.main()
+    def test_home(self):
+        tester = app.test_client(self)
+        response = tester.get('/')
+        self.assertEqual(response.status_code, 200)

@@ -17,25 +17,31 @@ from prometheus_client import (
 from prometheus_flask_exporter import PrometheusMetrics
 from redis import Redis
 
-# Env vars
 REDIS = os.getenv("REDIS_HOST", "localhost")
 
-# App setup
 option_a = os.getenv("OPTION_A", "Cats")
 option_b = os.getenv("OPTION_B", "Dogs")
 hostname = socket.gethostname()
 
 app = Flask(__name__)
 
-# Initialize Prometheus metrics
 metrics = PrometheusMetrics(app)
 metrics.info("app_info", "Vote service info", version="1.0.0")
 
-votes_counter = Counter("votes_total", "Total number of votes casted", ["vote_type"])
-active_sessions = Gauge("active_voting_sessions", "Number of active voting sessions")
+votes_counter = Counter(
+    "votes_total",
+    "Total number of votes casted",
+    ["vote_type"],
+)
+
+active_sessions = Gauge(
+    "active_voting_sessions",
+    "Number of active voting sessions",
+)
 
 redis_connection_status = Gauge(
-    "redis_connection_status", "Redis connection status (1=connected, 0=disconnected)"
+    "redis_connection_status",
+    "Redis connection status (1=connected, 0=disconnected)",
 )
 
 database_connection_status = Gauge(
@@ -52,19 +58,18 @@ vote_processing_duration = Histogram(
 database_votes_by_option = Gauge(
     "database_votes_by_option",
     "Current votes in database by option",
-    ["option"]
+    ["option"],
 )
 
 total_votes_in_db = Gauge(
-    "total_votes_in_database", "Total number of votes in database"
+    "total_votes_in_database",
+    "Total number of votes in database",
 )
 
-# Logging setup
 gunicorn_error_logger = logging.getLogger("gunicorn.error")
 app.logger.handlers.extend(gunicorn_error_logger.handlers)
 app.logger.setLevel(logging.INFO)
 
-# Track sessions
 session_count = 0
 
 
@@ -124,10 +129,8 @@ def update_database_metrics():
             conn.close()
 
             app.logger.info(
-                f"Metrics updated: Cats={cats_votes}, "
-                f"Dogs={dogs_votes}, Total={total_votes}"
+                f"M: Cat={cats_votes}, Dog={dogs_votes}, Total={total_votes}"
             )
-
     except Exception as e:
         app.logger.error(f"Error updating database metrics: {e}")
         database_connection_status.set(0)
@@ -167,9 +170,18 @@ def hello():
                 vote = request.form["vote"]
                 app.logger.info("Received vote for %s", vote)
 
-                vote_type = "a" if vote == "a" else "b" if vote == "b" else "unknown"
-                data = json.dumps({"voter_id": voter_id, "vote": vote})
+                vote_type = (
+                    "a" if vote == "a"
+                    else "b" if vote == "b"
+                    else "unknown"
+                )
+
+                data = json.dumps({
+                    "voter_id": voter_id,
+                    "vote": vote
+                })
                 redis.rpush("votes", data)
+
                 votes_counter.labels(vote_type=vote_type).inc()
                 app.logger.info(f"Vote processed: {vote_type}")
                 update_database_metrics()

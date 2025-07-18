@@ -1,13 +1,11 @@
 name: Deploy to Production
 
 on:
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: [self-hosted, production]
-    needs: approval
     steps:
       - uses: actions/checkout@v4
       - name: Deploy to Production

@@ -14,5 +14,6 @@ def run_flake8():
         print("Lint tests failed.")
         sys.exit(e.returncode)
 
+
 if __name__ == "__main__":
     run_flake8()

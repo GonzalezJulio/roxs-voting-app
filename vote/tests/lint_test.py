@@ -1,10 +1,18 @@
-import unittest
 import subprocess
+import sys
 
 
-class TestCodeStyle(unittest.TestCase):
+def run_flake8():
+    """Run flake8 to lint the Python files."""
+    files_to_lint = ['app.py']  # Add more Python files if necessary
+    command = ['flake8'] + files_to_lint
 
-    def test_flake8(self):
-        result = subprocess.run(['flake8', 'vote/'], capture_output=True, text=True)
-        self.assertEqual(result.returncode, 0, result.stdout)
+    try:
+        subprocess.run(command, check=True)
+        print("Lint tests passed successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Lint tests failed.")
+        sys.exit(e.returncode)
 
+if __name__ == "__main__":
+    run_flake8()

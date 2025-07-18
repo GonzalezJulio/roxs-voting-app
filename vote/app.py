@@ -17,21 +17,17 @@ from prometheus_client import (
 from prometheus_flask_exporter import PrometheusMetrics
 from redis import Redis
 
-# Env vars
 REDIS = os.getenv("REDIS_HOST", "localhost")
 
-# App setup
 option_a = os.getenv("OPTION_A", "Cats")
 option_b = os.getenv("OPTION_B", "Dogs")
 hostname = socket.gethostname()
 
 app = Flask(__name__)
 
-# Initialize Prometheus metrics with flask exporter
 metrics = PrometheusMetrics(app)
 metrics.info("app_info", "Vote service info", version="1.0.0")
 
-# Custom Prometheus metrics
 votes_counter = Counter(
     "votes_total",
     "Total number of votes casted",
@@ -70,21 +66,17 @@ total_votes_in_db = Gauge(
     "Total number of votes in database",
 )
 
-# Logging setup
 gunicorn_error_logger = logging.getLogger("gunicorn.error")
 app.logger.handlers.extend(gunicorn_error_logger.handlers)
 app.logger.setLevel(logging.INFO)
 
-# Track sessions
 session_count = 0
 
 
-# Redis connection
 def get_redis():
     if not hasattr(g, "redis"):
         try:
             g.redis = Redis(host=REDIS, db=0, socket_timeout=5)
-            # Test connection
             g.redis.ping()
             redis_connection_status.set(1)
         except Exception as e:
@@ -111,12 +103,10 @@ def get_pg_conn():
 
 
 def update_database_metrics():
-    """Update Prometheus metrics with current database state."""
     try:
         conn = get_pg_conn()
         if conn:
             cur = conn.cursor()
-            # Usar la consulta correcta para contar votos
             cur.execute("SELECT vote, COUNT(*) FROM votes GROUP BY vote;")
             rows = cur.fetchall()
 
@@ -138,34 +128,29 @@ def update_database_metrics():
             cur.close()
             conn.close()
 
-            # Log para debug
             app.logger.info(
-    f"Metrics updated: Cats={cats_votes}, Dogs={dogs_votes}, Total={total_votes}"
-)
-
+                f"M: Cat={cats_votes}, Dog={dogs_votes}, Total={total_votes}"
+            )
     except Exception as e:
         app.logger.error(f"Error updating database metrics: {e}")
         database_connection_status.set(0)
 
 
 def metrics_updater():
-    """Background thread to update metrics every 10 seconds."""
     while True:
         try:
             with app.app_context():
                 update_database_metrics()
-            time.sleep(10)  # Update every 10 seconds
+            time.sleep(10)
         except Exception as e:
             app.logger.error(f"Error in metrics updater: {e}")
             time.sleep(10)
 
 
-# Start background metrics updater
 metrics_thread = threading.Thread(target=metrics_updater, daemon=True)
 metrics_thread.start()
 
 
-# Main route
 @app.route("/", methods=["POST", "GET"])
 def hello():
     global session_count
@@ -179,29 +164,27 @@ def hello():
     vote = None
 
     if request.method == "POST":
-        # Use context manager for timing
         with vote_processing_duration.time():
             try:
                 redis = get_redis()
                 vote = request.form["vote"]
                 app.logger.info("Received vote for %s", vote)
 
-                # Determine vote type for metrics - mantener consistencia
                 vote_type = (
-                "a" if vote == "a" else "b" if vote == "b" else "unknown"
-            )
+                    "a" if vote == "a"
+                    else "b" if vote == "b"
+                    else "unknown"
+                )
 
-                data = json.dumps({"voter_id": voter_id, "vote": vote})
+                data = json.dumps({
+                    "voter_id": voter_id,
+                    "vote": vote
+                })
                 redis.rpush("votes", data)
 
-                # Increment vote counter
                 votes_counter.labels(vote_type=vote_type).inc()
-
                 app.logger.info(f"Vote processed: {vote_type}")
-
-                # Force metrics update after vote
                 update_database_metrics()
-
             except Exception as e:
                 app.logger.error(f"Error processing vote: {e}")
                 redis_connection_status.set(0)
@@ -219,11 +202,9 @@ def hello():
     return resp
 
 
-# Metrics route
 @app.route("/metrics")
 def metrics_endpoint():
     try:
-        # Update database metrics before serving
         update_database_metrics()
         return generate_latest(), 200, {"Content-Type": CONTENT_TYPE_LATEST}
     except Exception as e:
@@ -233,7 +214,6 @@ def metrics_endpoint():
 
 @app.route("/stats")
 def stats():
-    """API endpoint to get current vote statistics."""
     try:
         conn = get_pg_conn()
         if conn:
@@ -270,9 +250,7 @@ def stats():
 
 @app.route("/healthz")
 def healthz():
-    """Health check endpoint."""
     try:
-        # Test Redis connection
         redis = get_redis()
         redis.ping()
         redis_status = "OK"
@@ -282,7 +260,6 @@ def healthz():
         redis_connection_status.set(0)
 
     try:
-        # Test Database connection
         conn = get_pg_conn()
         if conn:
             conn.close()

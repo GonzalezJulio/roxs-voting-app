@@ -131,7 +131,6 @@ def update_database_metrics():
                 elif vote == "b":
                     dogs_votes = count
 
-            
             database_votes_by_option.labels(option="a").set(cats_votes)
             database_votes_by_option.labels(option="b").set(dogs_votes)
             total_votes_in_db.set(total_votes)
@@ -141,8 +140,8 @@ def update_database_metrics():
 
             # Log para debug
             app.logger.info(
-                f"Metrics updated: Cats={cats_votes}, Dogs={dogs_votes}, Total={total_votes}"
-            )
+    f"Metrics updated: Cats={cats_votes}, Dogs={dogs_votes}, Total={total_votes}"
+)
 
     except Exception as e:
         app.logger.error(f"Error updating database metrics: {e}")
@@ -188,7 +187,9 @@ def hello():
                 app.logger.info("Received vote for %s", vote)
 
                 # Determine vote type for metrics - mantener consistencia
-                vote_type = "a" if vote == "a" else "b" if vote == "b" else "unknown"
+                vote_type = (
+                "a" if vote == "a" else "b" if vote == "b" else "unknown"
+            )
 
                 data = json.dumps({"voter_id": voter_id, "vote": vote})
                 redis.rpush("votes", data)

@@ -131,7 +131,7 @@ def update_database_metrics():
                 elif vote == "b":
                     dogs_votes = count
 
-            # Update Prometheus gauges - usar labels consistentes con votes_total
+            
             database_votes_by_option.labels(option="a").set(cats_votes)
             database_votes_by_option.labels(option="b").set(dogs_votes)
             total_votes_in_db.set(total_votes)

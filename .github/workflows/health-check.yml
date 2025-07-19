@@ -10,4 +10,3 @@ jobs:
     steps:
       - name: Run health check
         run: ./scripts/health-check.sh
-

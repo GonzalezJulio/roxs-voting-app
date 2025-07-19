@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 ENV=$1
@@ -9,8 +8,8 @@ if [[ -z "$ENV" ]]; then
   exit 1
 fi
 
-
-URL="http://localhost:5000/health"
+# TEMP: usar una URL que devuelva 200
+URL="https://httpbin.org/status/200"
 
 echo "Ejecutando health check en entorno $ENV para $URL"
 

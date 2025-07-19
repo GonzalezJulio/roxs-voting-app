@@ -8,10 +8,8 @@ jobs:
   health-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: List scripts folder
-        run: ls -l scripts/
-
-      - name: Run health check
-        run: ./scripts/health-check.sh main
+      - name: Run health check (main)
+        run: bash scripts/health-check.sh main

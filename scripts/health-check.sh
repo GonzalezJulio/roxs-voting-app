@@ -9,8 +9,8 @@ if [[ -z "$ENV" ]]; then
   exit 1
 fi
 
-# Cambia esta URL por la correcta según tu app y entorno
-URL="http://localhost:8080/health"
+
+URL="http://localhost:5000/health"
 
 echo "Ejecutando health check en entorno $ENV para $URL"
 

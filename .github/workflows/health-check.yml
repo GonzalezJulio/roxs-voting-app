@@ -1,0 +1,17 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Cada 30 minutos
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List scripts folder
+        run: ls -l scripts/
+
+      - name: Run health check
+        run: ./scripts/health-check.sh

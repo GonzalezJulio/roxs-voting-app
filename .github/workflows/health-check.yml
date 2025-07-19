@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run health check
-        run: ./scripts/health-check.sh staging
+        run: ./scripts/health-check.sh

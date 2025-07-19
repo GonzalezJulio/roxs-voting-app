@@ -5,7 +5,7 @@ set -e
 ENV=$1
 
 if [[ -z "$ENV" ]]; then
-  echo "Uso: $0 [development|staging|production]"
+  echo "Uso: $0 [develop|main]"
   exit 1
 fi
 
